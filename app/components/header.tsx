@@ -25,17 +25,17 @@ export function Header() {
   };
 
   return (
-    <div className="bg-gradient-to-r from-[#8B7FD8] via-[#C4B5FD] to-[#FFB6C1] p-6 pb-8">
+    <div className="bg-background px-6 pt-10 pb-12">
       <div className="max-w-lg mx-auto">
         <div className="flex items-center justify-between mb-2">
           <div>
-          <div className="text-white/80 text-sm">{currentDate}</div>
-              <h1 className="text-white text-2xl mt-1">{getGreeting()}! 🫧</h1>
+            <p className="text-muted-foreground text-sm">{currentDate}</p>
+            <h1 className="text-foreground text-2xl font-medium mt-1">{getGreeting()}</h1>
           </div>
           <div className="text-5xl">{emoji}</div>
         </div>
-        <p className="text-white/90 text-sm mt-2">
-          Let's grow your wealth together today
+        <p className="text-muted-foreground text-sm mt-2">
+          Let&apos;s grow your wealth together today
         </p>
       </div>
     </div>

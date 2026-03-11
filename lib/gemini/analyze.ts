@@ -159,6 +159,6 @@ function getFallbackInsights(): InsightAnalysis {
       { id: 3, text: "관심 분야(AI·전기차 등) 정보 찾아보기", completed: false, priority: 3 },
       { id: 4, text: "모르는 종목은 사지 않고, 아는 것만 적당히 투자하기", completed: false, priority: 4 },
     ],
-    summary: "뉴스 분석 중입니다. 잠시 후 다시 시도해 주세요.",
+    summary: "오늘의 추천 종목을 확인해보세요",
   };
 }
