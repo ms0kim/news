@@ -27,23 +27,29 @@ export async function analyzeNewsForInsights(
     { "name": "섹터명(한국어)", "change": "+X.X%", "icon": "이모지1개", "description": "한줄설명" }
   ],
   "stocks": [
-    { "name": "종목명", "sector": "섹터", "symbol": "티커(선택)", "reason": "추천이유 한줄" }
+    { "name": "종목명", "sector": "섹터", "symbol": "티커", "reason": "추천이유", "change": "+X.X%", "icon": "이모지1개" }
   ],
   "actionPlan": [
     { "id": 1, "text": "액션플랜 항목(한국어, 초보자도 이해하기 쉬운 톤)", "priority": 1 }
   ],
-  "summary": "오늘의 핵심 인사이트 2~3문장 요약"
+  "summary": "오늘의 핵심 인사이트 짧은 한 줄 (15자 내외)"
 }
 
 규칙:
-- sectors: 3개, 글로벌 트렌드에서 가장 유망한 섹터 (예: AI·반도체, 클린에너지, 헬스케어)
-- stocks: 3~5개, 해당 섹터 관련 대표 종목 (한국·미국 주식 포함 가능)
-- actionPlan: 4개, 투자자가 오늘 할 수 있는 구체적 액션 (예: "AI 반도체 ETF 비중 점검하기")
-- 톤앤매너: 친근하고 초보자도 이해하기 쉬운 한국어
-- change는 뉴스 기반 추정 또는 "+관심" 등으로 표시 가능
+- sectors: 3개, 글로벌 트렌드에서 가장 유망한 섹터
+- stocks: 반드시 3~5개. symbol은 필수. 실제 상장 종목만.
+  * 한국: symbol 6자리 (005930, 000660, 051910, 035420, 006400)
+  * 미국: symbol 티커 (NVDA, TSLA, AAPL, MSFT, GOOGL, AMD)
+  * change: 뉴스 기반 추정 등락률 (예: "+2.1%", "-0.5%", "+관심")
+  * icon: 해당 종목에 어울리는 이모지 1개. 종목마다 서로 다른 이모지 사용.
+  예: 삼성전자🌟, SK하이닉스🧩, 엔비디아🎯, 테슬라⚡, 애플🍎, 구글🌐, 네이버🟢, 마이크로소프트🪟, AMD🔧, 아마존📦, 현대차🚙, 포스코🏭, 셀트리온💉 등
+  * reason: 부가설명 한 줄 (예: "AI 반도체 수요 확대로 실적 기대")
+- actionPlan: 4개
+- summary: 15자 내외로 짧게 (예: "AI·전기차 관심", "반도체 수혜 기대")
+- change: "+관심" 또는 "+X.X%"
 
 뉴스:
-${newsText}`;
+${newsText || "경제·시장 동향"}`;
 
   const result = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -63,6 +69,20 @@ ${newsText}`;
   try {
     const parsed = JSON.parse(jsonStr) as InsightAnalysis;
 
+    const stocks = Array.isArray(parsed.stocks)
+      ? parsed.stocks
+          .slice(0, 5)
+          .map((s: Stock & { symbol?: string; change?: string; icon?: string }) => ({
+            name: s.name ?? "미분류",
+            sector: s.sector ?? "",
+            symbol: s.symbol ?? inferSymbol(s.name),
+            reason: s.reason,
+            change: s.change ?? "+관심",
+            icon: s.icon ?? "📈",
+          }))
+          .filter((s) => s.name && s.symbol)
+      : [];
+
     return {
       sectors: Array.isArray(parsed.sectors)
         ? parsed.sectors.slice(0, 3).map((s: Sector, i: number) => ({
@@ -72,14 +92,7 @@ ${newsText}`;
             description: s.description,
           }))
         : [],
-      stocks: Array.isArray(parsed.stocks)
-        ? parsed.stocks.slice(0, 5).map((s: Stock) => ({
-            name: s.name ?? "미분류",
-            sector: s.sector ?? "",
-            symbol: s.symbol,
-            reason: s.reason,
-          }))
-        : [],
+      stocks: stocks.length > 0 ? stocks : getDefaultStocks(),
       actionPlan: Array.isArray(parsed.actionPlan)
         ? parsed.actionPlan.slice(0, 4).map((a: ActionPlanItem, i: number) => ({
             id: a.id ?? i + 1,
@@ -95,6 +108,41 @@ ${newsText}`;
   }
 }
 
+const SYMBOL_MAP: Record<string, string> = {
+  삼성전자: "005930",
+  "SK하이닉스": "000660",
+  "LG화학": "051910",
+  네이버: "035420",
+  삼성바이오로직스: "207940",
+  엔비디아: "NVDA",
+  NVIDIA: "NVDA",
+  테슬라: "TSLA",
+  Tesla: "TSLA",
+  애플: "AAPL",
+  Apple: "AAPL",
+  마이크로소프트: "MSFT",
+  Microsoft: "MSFT",
+  구글: "GOOGL",
+  Google: "GOOGL",
+  AMD: "AMD",
+};
+
+function inferSymbol(name: string): string {
+  if (!name) return "";
+  const trimmed = name.trim();
+  return SYMBOL_MAP[trimmed] ?? "";
+}
+
+function getDefaultStocks(): Stock[] {
+  return [
+    { name: "삼성전자", sector: "반도체", symbol: "005930", reason: "국내 대표 반도체·전자 기업", change: "+관심", icon: "🌟" },
+    { name: "SK하이닉스", sector: "반도체", symbol: "000660", reason: "메모리 반도체 글로벌 1위", change: "+관심", icon: "🧩" },
+    { name: "엔비디아", sector: "AI·반도체", symbol: "NVDA", reason: "AI GPU 시장 선점 기업", change: "+관심", icon: "🎯" },
+    { name: "테슬라", sector: "전기차", symbol: "TSLA", reason: "EV·에너지 트렌드", change: "+관심", icon: "⚡" },
+    { name: "애플", sector: "테크", symbol: "AAPL", reason: "글로벌 테크 대표주", change: "+관심", icon: "🍎" },
+  ];
+}
+
 function getFallbackInsights(): InsightAnalysis {
   return {
     sectors: [
@@ -102,7 +150,7 @@ function getFallbackInsights(): InsightAnalysis {
       { name: "클린에너지", change: "+관심", icon: "⚡", description: "에너지 전환" },
       { name: "헬스케어", change: "+관심", icon: "💊", description: "고령화 수혜" },
     ],
-    stocks: [],
+    stocks: getDefaultStocks(),
     actionPlan: [
       { id: 1, text: "오늘 주요 뉴스 확인하기", completed: false, priority: 1 },
       { id: 2, text: "포트폴리오 비중 점검하기", completed: false, priority: 2 },

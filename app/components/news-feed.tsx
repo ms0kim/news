@@ -3,10 +3,13 @@
 import { Globe, Languages, Loader2, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useInsightsContext } from "./insights-provider";
+import { NewsDetailModal } from "./news-detail-modal";
+import type { NewsItem } from "@/types";
 
 export function NewsFeed() {
   const { data, loading, error, refetch } = useInsightsContext();
   const [translateMode, setTranslateMode] = useState(false);
+  const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
 
   const news = data?.news ?? [];
 
@@ -16,7 +19,7 @@ export function NewsFeed() {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <Globe className="w-5 h-5 text-[#8B7FD8]" />
-            <h3>Market News</h3>
+            <h3>마켓 뉴스</h3>
           </div>
         </div>
         <div className="flex flex-col items-center justify-center py-12">
@@ -33,7 +36,7 @@ export function NewsFeed() {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <Globe className="w-5 h-5 text-[#8B7FD8]" />
-            <h3>Market News</h3>
+            <h3>마켓 뉴스</h3>
           </div>
           <button
             onClick={() => refetch()}
@@ -53,7 +56,7 @@ export function NewsFeed() {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <Globe className="w-5 h-5 text-[#8B7FD8]" />
-          <h3>Market News</h3>
+          <h3>마켓 뉴스</h3>
         </div>
         <button
           onClick={() => setTranslateMode(!translateMode)}
@@ -64,7 +67,7 @@ export function NewsFeed() {
           }`}
         >
           <Languages className="w-4 h-4" />
-          <span className="text-sm">KR</span>
+          <span className="text-sm">한국어</span>
         </button>
       </div>
 
@@ -73,12 +76,11 @@ export function NewsFeed() {
           <p className="text-sm text-[#9B91C1] py-4">표시할 뉴스가 없습니다.</p>
         ) : (
           news.map((item) => (
-            <a
+            <button
               key={item.id}
-              href={item.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block border border-[#E5DFF8] rounded-2xl p-4 hover:bg-[#FBF9FF] transition-colors cursor-pointer"
+              type="button"
+              onClick={() => setSelectedNews(item)}
+              className="w-full text-left block border border-[#E5DFF8] rounded-2xl p-4 hover:bg-[#FBF9FF] transition-colors cursor-pointer"
             >
               <div className="flex gap-3">
                 <div className="flex-1">
@@ -91,16 +93,27 @@ export function NewsFeed() {
                     <span>{item.source}</span>
                     <span>•</span>
                     <span>{item.timeAgo ?? "-"}</span>
+                    {item.isGlobal && (
+                      <>
+                        <span>•</span>
+                        <span className="text-[#FF8FAB]">클릭 시 번역/요약</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 {item.isGlobal && (
                   <div className="flex-shrink-0 w-2 h-2 rounded-full bg-[#FFB6C1] mt-2" />
                 )}
               </div>
-            </a>
+            </button>
           ))
         )}
       </div>
+
+      <NewsDetailModal
+        item={selectedNews}
+        onClose={() => setSelectedNews(null)}
+      />
     </div>
   );
 }

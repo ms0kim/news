@@ -31,7 +31,7 @@ export async function fetchGNews(params: {
   const rawKey = process.env.GNEWS_API_KEY || process.env.NEWS_API_KEY;
   const apiKey = rawKey?.trim();
   if (!apiKey || apiKey === "your-gnews-api-key") {
-    throw new Error("GNEWS_API_KEY를 .env.local에 설정해 주세요. (https://gnews.io/register)");
+    throw new Error("GNEWS_API_KEY를 설정해 주세요. (로컬: .env.local, Vercel: 프로젝트 Settings → Environment Variables)");
   }
 
   const endpoint = params.endpoint ?? "top-headlines";

@@ -14,6 +14,8 @@ export interface Stock {
   sector: string;
   symbol?: string;
   reason?: string;
+  change?: string;
+  icon?: string;
 }
 
 export interface ActionPlanItem {

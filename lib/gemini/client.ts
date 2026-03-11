@@ -12,7 +12,7 @@ export function getGeminiModel(type: GeminiModelType = "flash") {
   const rawKey = process.env.GEMINI_API_KEY;
   const apiKey = rawKey?.trim();
   if (!apiKey || apiKey === "your-gemini-api-key") {
-    throw new Error("GEMINI_API_KEY를 .env.local에 설정해 주세요. (https://aistudio.google.com/app/apikey)");
+    throw new Error("GEMINI_API_KEY를 설정해 주세요. (로컬: .env.local, Vercel: 프로젝트 Settings → Environment Variables)");
   }
   const modelName =
     type === "pro"

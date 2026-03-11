@@ -1,92 +1,81 @@
-'use client'
+"use client";
 
 import { Calendar, Award, Flame } from "lucide-react";
 import { useEffect, useState } from "react";
 
+const STORAGE_KEY = "growthTrackerActivity";
+
+function getDateKey(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function getStoredActivity(): Record<string, boolean> {
+  if (typeof window === "undefined") return {};
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    return s ? JSON.parse(s) : {};
+  } catch {
+    return {};
+  }
+}
+
+function setStoredActivity(activity: Record<string, boolean>) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(activity));
+}
+
+function calculateStreak(activity: Record<string, boolean>): number {
+  const today = new Date();
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = getDateKey(d);
+    if (activity[key]) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
 export function GrowthTracker() {
-  const [streak, setStreak] = useState(0);
-  const [activityData, setActivityData] = useState<boolean[]>([]);
+  const [activity, setActivity] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    // Load from localStorage or initialize
-    const savedStreak = localStorage.getItem("investmentStreak");
-    const savedActivity = localStorage.getItem("activityData");
-    const lastVisit = localStorage.getItem("lastVisit");
-    
-    const today = new Date().toDateString();
-    
-    if (savedStreak) {
-      setStreak(parseInt(savedStreak));
-    }
-    
-    if (savedActivity) {
-      setActivityData(JSON.parse(savedActivity));
-    } else {
-      // Initialize 42 days (6 weeks)
-      setActivityData(new Array(42).fill(false).map((_, i) => i % 3 === 0));
-    }
+    const stored = getStoredActivity();
+    const todayKey = getDateKey(new Date());
 
-    // Check if it's a new day and increment streak
-    if (lastVisit !== today) {
-      const newStreak = lastVisit ? streak + 1 : 1;
-      setStreak(newStreak);
-      localStorage.setItem("investmentStreak", newStreak.toString());
-      localStorage.setItem("lastVisit", today);
-      
-      // Mark today as active
-      const newActivity = [...activityData];
-      newActivity[newActivity.length - 1] = true;
-      setActivityData(newActivity);
-      localStorage.setItem("activityData", JSON.stringify(newActivity));
-    }
+    // 오늘 방문 기록
+    const updated = { ...stored, [todayKey]: true };
+    setActivity(updated);
+    setStoredActivity(updated);
   }, []);
 
-  const weeks = [];
-  for (let i = 0; i < 6; i++) {
-    weeks.push(activityData.slice(i * 7, (i + 1) * 7));
-  }
+  const streak = calculateStreak(activity);
+  const activeDays = Object.values(activity).filter(Boolean).length;
 
   return (
     <div className="bg-white rounded-3xl p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-5">
         <Calendar className="w-5 h-5 text-[#8B7FD8]" />
-        <h3>Growth Tracker</h3>
+        <h3>성장 트래커</h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-4">
         <div className="bg-gradient-to-br from-[#FFE5EC] to-[#FFB6C1] rounded-2xl p-4 text-center">
           <Flame className="w-6 h-6 mx-auto mb-2 text-[#FF8FAB]" />
           <div className="text-2xl font-semibold text-[#3D3557]">{streak}</div>
-          <div className="text-xs text-[#3D3557] opacity-70">Day Streak</div>
+          <div className="text-xs text-[#3D3557] opacity-70">일 연속</div>
         </div>
-        
+
         <div className="bg-gradient-to-br from-[#E8F5E8] to-[#A8E6CF] rounded-2xl p-4 text-center">
           <Award className="w-6 h-6 mx-auto mb-2 text-[#5BBD8C]" />
           <div className="text-2xl font-semibold text-[#3D3557]">
-            {activityData.filter((d) => d).length}
+            {activeDays}
           </div>
-          <div className="text-xs text-[#3D3557] opacity-70">Active Days</div>
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <div className="text-xs text-[#9B91C1] mb-2">Last 6 weeks</div>
-        <div className="flex gap-1.5">
-          {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} className="flex flex-col gap-1.5">
-              {week.map((active, dayIndex) => (
-                <div
-                  key={dayIndex}
-                  className={`w-5 h-5 rounded ${
-                    active
-                      ? "bg-[#8B7FD8]"
-                      : "bg-[#F5F3FF] border border-[#E5DFF8]"
-                  }`}
-                  title={`Week ${weekIndex + 1}, Day ${dayIndex + 1}`}
-                />
-              ))}
-            </div>
-          ))}
+          <div className="text-xs text-[#3D3557] opacity-70">활동 일수</div>
         </div>
       </div>
     </div>
