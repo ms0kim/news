@@ -30,7 +30,7 @@ export async function analyzeNewsForInsights(
     { "name": "종목명", "sector": "섹터", "symbol": "티커", "reason": "추천이유", "change": "+X.X%", "icon": "이모지1개" }
   ],
   "actionPlan": [
-    { "id": 1, "text": "액션플랜 항목(한국어, 초보자도 이해하기 쉬운 톤)", "priority": 1 }
+    { "id": 1, "text": "액션플랜 항목(한국어)", "priority": 1 }
   ],
   "summary": "오늘의 핵심 인사이트 짧은 한 줄 (15자 내외)"
 }
@@ -44,7 +44,9 @@ export async function analyzeNewsForInsights(
   * icon: 해당 종목에 어울리는 이모지 1개. 종목마다 서로 다른 이모지 사용.
   예: 삼성전자🌟, SK하이닉스🧩, 엔비디아🎯, 테슬라⚡, 애플🍎, 구글🌐, 네이버🟢, 마이크로소프트🪟, AMD🔧, 아마존📦, 현대차🚙, 포스코🏭, 셀트리온💉 등
   * reason: 부가설명 한 줄 (예: "AI 반도체 수요 확대로 실적 기대")
-- actionPlan: 4개
+- actionPlan: 4개. 반드시 투자 초보자가 이해하기 쉬운 표현으로 작성.
+  * 전문 용어(포트폴리오, 비중, 리스크, ETF, 리서치 등) 대신 쉬운 말 사용
+  * 예: "오늘 경제 뉴스 한 줄씩 읽어보기", "내가 산 주식이 얼마인지 확인해보기", "관심 분야(AI·전기차 등) 정보 찾아보기", "모르는 종목은 사지 않고 아는 것만 적당히 투자하기"
 - summary: 15자 내외로 짧게 (예: "AI·전기차 관심", "반도체 수혜 기대")
 - change: "+관심" 또는 "+X.X%"
 
@@ -152,10 +154,10 @@ function getFallbackInsights(): InsightAnalysis {
     ],
     stocks: getDefaultStocks(),
     actionPlan: [
-      { id: 1, text: "오늘 주요 뉴스 확인하기", completed: false, priority: 1 },
-      { id: 2, text: "포트폴리오 비중 점검하기", completed: false, priority: 2 },
-      { id: 3, text: "관심 섹터 ETF 리서치하기", completed: false, priority: 3 },
-      { id: 4, text: "리스크 관리 원칙 준수하기", completed: false, priority: 4 },
+      { id: 1, text: "오늘 경제 뉴스 한 줄씩 읽어보기", completed: false, priority: 1 },
+      { id: 2, text: "내가 산 주식이 얼마인지 확인해보기", completed: false, priority: 2 },
+      { id: 3, text: "관심 분야(AI·전기차 등) 정보 찾아보기", completed: false, priority: 3 },
+      { id: 4, text: "모르는 종목은 사지 않고, 아는 것만 적당히 투자하기", completed: false, priority: 4 },
     ],
     summary: "뉴스 분석 중입니다. 잠시 후 다시 시도해 주세요.",
   };

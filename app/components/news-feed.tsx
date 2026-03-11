@@ -19,7 +19,7 @@ export function NewsFeed() {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <Globe className="w-5 h-5 text-[#8B7FD8]" />
-            <h3>마켓 뉴스</h3>
+            <h3>Market News</h3>
           </div>
         </div>
         <div className="flex flex-col items-center justify-center py-12">
@@ -36,7 +36,7 @@ export function NewsFeed() {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <Globe className="w-5 h-5 text-[#8B7FD8]" />
-            <h3>마켓 뉴스</h3>
+            <h3>Market News</h3>
           </div>
           <button
             onClick={() => refetch()}
@@ -56,7 +56,7 @@ export function NewsFeed() {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <Globe className="w-5 h-5 text-[#8B7FD8]" />
-          <h3>마켓 뉴스</h3>
+          <h3>Market News</h3>
         </div>
         <button
           onClick={() => setTranslateMode(!translateMode)}
@@ -67,7 +67,7 @@ export function NewsFeed() {
           }`}
         >
           <Languages className="w-4 h-4" />
-          <span className="text-sm">한국어</span>
+          <span className="text-sm">KR</span>
         </button>
       </div>
 

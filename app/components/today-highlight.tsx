@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Loader2, RefreshCw, TrendingUp, TrendingDown } from "lucide-react";
+import { Sparkle, Loader2, RefreshCw, TrendingUp, TrendingDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useInsightsContext } from "./insights-provider";
 import { StockDetailModal } from "./stock-detail-modal";
@@ -103,8 +103,8 @@ export function TodayHighlight() {
       <div className="bg-gradient-to-br from-[#8B7FD8] to-[#C4B5FD] rounded-3xl p-6 text-white shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            <h2 className="text-white">오늘의 AI 픽</h2>
+            <Sparkle className="w-5 h-5" />
+            <h2 className="text-white">Today's AI Picks</h2>
           </div>
           <button
             onClick={() => refetch()}
@@ -123,8 +123,8 @@ export function TodayHighlight() {
     <>
       <div className="bg-gradient-to-br from-[#8B7FD8] to-[#C4B5FD] rounded-3xl p-6 text-white shadow-lg">
         <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-5 h-5" />
-          <h2 className="text-white">오늘의 AI 픽</h2>
+          <Sparkle className="w-5 h-5" />
+          <h2 className="text-white">Today's AI Picks</h2>
         </div>
 
         {summary && (

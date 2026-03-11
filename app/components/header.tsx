@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 
 const EMOJIS = ["🐰", "🍧", "🩰", "🍦", "🍨", "🐶", "🐹", "🩰", "🧴"];
 
 export function Header() {
-  const randomEmoji = useMemo(() => EMOJIS[Math.floor(Math.random() * EMOJIS.length)], []);
+  const [emoji, setEmoji] = useState(EMOJIS[0]);
+
+  useEffect(() => {
+    setEmoji(EMOJIS[Math.floor(Math.random() * EMOJIS.length)]);
+  }, []);
 
   const currentDate = new Date().toLocaleDateString("ko-KR", {
     weekday: "long",
@@ -28,7 +32,7 @@ export function Header() {
           <div className="text-white/80 text-sm">{currentDate}</div>
               <h1 className="text-white text-2xl mt-1">{getGreeting()}! 🫧</h1>
           </div>
-          <div className="text-5xl">{randomEmoji}</div>
+          <div className="text-5xl">{emoji}</div>
         </div>
         <p className="text-white/90 text-sm mt-2">
           Let's grow your wealth together today

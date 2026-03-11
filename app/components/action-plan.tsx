@@ -45,7 +45,7 @@ export function ActionPlan() {
       <div className="bg-white rounded-3xl p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-5">
           <Lightbulb className="w-5 h-5 text-[#FFD3A5]" />
-          <h3>오늘의 액션 플랜</h3>
+          <h3>Today's Action Plan</h3>
         </div>
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-[#8B7FD8] mb-3" />
@@ -57,10 +57,10 @@ export function ActionPlan() {
 
   if (error || actionPlan.length === 0) {
     const fallbackPlan: ActionPlanItem[] = [
-      { id: 1, text: "오늘 주요 뉴스 확인하기", completed: false },
-      { id: 2, text: "포트폴리오 비중 점검하기", completed: false },
-      { id: 3, text: "관심 섹터 ETF 리서치하기", completed: false },
-      { id: 4, text: "리스크 관리 원칙 준수하기", completed: false },
+      { id: 1, text: "오늘 경제 뉴스 한 줄씩 읽어보기", completed: false },
+      { id: 2, text: "내가 산 주식이 얼마인지 확인해보기", completed: false },
+      { id: 3, text: "관심 분야(AI·전기차 등) 정보 찾아보기", completed: false },
+      { id: 4, text: "모르는 종목은 사지 않고, 아는 것만 적당히 투자하기", completed: false },
     ];
 
     return (
@@ -68,7 +68,7 @@ export function ActionPlan() {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <Lightbulb className="w-5 h-5 text-[#FFD3A5]" />
-            <h3>오늘의 액션 플랜</h3>
+            <h3>Today's Action Plan</h3>
           </div>
           <div className="bg-[#FFF9E5] text-[#3D3557] px-3 py-1 rounded-full text-sm">
             {fallbackPlan.filter((a) => completed[a.id]).length}/{fallbackPlan.length}
