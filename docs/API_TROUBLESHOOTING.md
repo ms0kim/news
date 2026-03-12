@@ -49,6 +49,8 @@ http://localhost:3000/api/insights/debug
 | GEMINI_API_KEY를 .env.local에... | 키 미설정 | .env.local 생성 후 키 추가 |
 | 404 models/gemini-1.5-flash is not found | 모델 중단됨 | `gemini-2.0-flash`로 변경됨. 여전히 404면 `gemini-pro` 시도 |
 | 404/403 (Gemini) | 잘못된 키 또는 모델 | AI Studio에서 새 키 발급 |
+| 429 / Resource exhausted | 토큰 한도 초과 | 무료 티어: 일일 한도 확인. 다음날 초기화 또는 유료 전환 |
+| Vercel 배포 시 AI만 실패 | GEMINI_API_KEY 미설정 | Vercel → Settings → Environment Variables에 추가 후 재배포 |
 
 ## 4. .env.local 체크리스트
 

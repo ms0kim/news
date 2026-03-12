@@ -67,7 +67,8 @@ ${newsText || "경제·시장 동향"}`;
     const response = result.response;
     text = response.text();
   } catch (e) {
-    console.error("[analyzeNewsForInsights] Gemini API error:", e);
+    const err = e instanceof Error ? e : new Error(String(e));
+    console.error("[analyzeNewsForInsights] Gemini API error:", err.message, err.cause ?? "");
     return getFallbackInsights();
   }
 
