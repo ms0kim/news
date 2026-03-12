@@ -1,10 +1,10 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /** 번역 등 가벼운 작업용 (저렴, 빠름) */
-export const MODEL_FLASH = "gemini-1.5-flash";
+export const MODEL_FLASH = "gemini-3.1-flash-lite-preview";
 
-/** 주식 추천·인사이트 등 중요한 분석용 */
-export const MODEL_PRO = "gemini-1.5-flash";
+/** 주식 추천·인사이트 등 중요한 분석용 (고품질) - 2.5 Pro는 무료 0/0이라 Flash 사용 */
+export const MODEL_PRO = "gemini-3-flash-preview";
 
 export type GeminiModelType = "flash" | "pro";
 
