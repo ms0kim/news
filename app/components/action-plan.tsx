@@ -81,19 +81,19 @@ export function ActionPlan() {
               onClick={() => toggleAction(action.id)}
               className={`flex items-start gap-3 p-4 rounded-2xl cursor-pointer transition-all ${
                 completed[action.id]
-                  ? "bg-[#E8F5E8] border border-[#A8E6CF]"
+                  ? "bg-[#F5F3FF] border border-[#E5DFF8]"
                   : "bg-[#FBF9FF] border border-[#E5DFF8] hover:border-[#8B7FD8]"
               }`}
             >
               {completed[action.id] ? (
-                <CheckCircle2 className="w-5 h-5 text-[#A8E6CF] flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-[#8B7FD8] flex-shrink-0 mt-0.5" />
               ) : (
                 <Circle className="w-5 h-5 text-[#9B91C1] flex-shrink-0 mt-0.5" />
               )}
               <span
                 className={`text-sm flex-1 ${
                   completed[action.id]
-                    ? "text-[#3D3557] line-through opacity-60"
+                    ? "text-[#9B91C1] line-through"
                     : "text-[#3D3557]"
                 }`}
               >
@@ -125,19 +125,19 @@ export function ActionPlan() {
             onClick={() => toggleAction(action.id)}
             className={`flex items-start gap-3 p-4 rounded-2xl cursor-pointer transition-all ${
               completed[action.id]
-                ? "bg-[#E8F5E8] border border-[#A8E6CF]"
+                ? "bg-[#F5F3FF] border border-[#E5DFF8]"
                 : "bg-[#FBF9FF] border border-[#E5DFF8] hover:border-[#8B7FD8]"
             }`}
           >
             {completed[action.id] ? (
-              <CheckCircle2 className="w-5 h-5 text-[#A8E6CF] flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-5 h-5 text-[#8B7FD8] flex-shrink-0 mt-0.5" />
             ) : (
               <Circle className="w-5 h-5 text-[#9B91C1] flex-shrink-0 mt-0.5" />
             )}
             <span
               className={`text-sm flex-1 ${
                 completed[action.id]
-                  ? "text-[#3D3557] line-through opacity-60"
+                  ? "text-[#9B91C1] line-through"
                   : "text-[#3D3557]"
               }`}
             >
