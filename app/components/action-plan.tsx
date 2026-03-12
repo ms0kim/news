@@ -111,7 +111,7 @@ export function ActionPlan() {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <Lightbulb className="w-5 h-5 text-[#FFD3A5]" />
-          <h3>오늘의 액션 플랜</h3>
+          <h3>Today's Action Plan</h3>
         </div>
         <div className="bg-[#FFF9E5] text-[#3D3557] px-3 py-1 rounded-full text-sm">
           {completedCount}/{actionPlan.length}

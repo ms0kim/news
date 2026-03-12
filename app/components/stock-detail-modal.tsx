@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { X, ExternalLink, Loader2, PiggyBank, Clock, HandCoins, Wallet } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import type { Stock } from "@/types";
@@ -191,9 +192,9 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
     return `$${p.toLocaleString()}`;
   };
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 min-h-screen"
       onClick={onClose}
     >
       <div
@@ -321,4 +322,9 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
       </div>
     </div>
   );
+
+  if (typeof document !== "undefined") {
+    return createPortal(modalContent, document.body);
+  }
+  return modalContent;
 }

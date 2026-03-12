@@ -89,8 +89,8 @@ export function NewsFeed() {
                       ? item.translatedTitle
                       : item.title}
                   </p>
-                  <div className="flex items-center gap-2 text-xs text-[#9B91C1]">
-                    <span>{item.source}</span>
+                  <div className="flex items-center gap-2 text-xs text-[#9B91C1] min-w-0">
+                    <span className="truncate max-w-[4.5rem]">{item.source}</span>
                     <span>•</span>
                     <span>{item.timeAgo ?? "-"}</span>
                     {item.isGlobal && (

@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 const EMOJIS = ["🐰", "🍧", "🩰", "🍦", "🍨", "🐶", "🐹", "🩰", "🧴"];
 
+function getDefaultEmoji() {
+  return EMOJIS[new Date().getDate() % EMOJIS.length];
+}
+
 export async function GET(request: NextRequest) {
-  const emoji = request.nextUrl.searchParams.get("e") || EMOJIS[0];
+  const emoji = request.nextUrl.searchParams.get("e") || getDefaultEmoji();
 
   const manifest = {
     name: "투자 뉴스 인사이트",

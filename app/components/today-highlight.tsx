@@ -129,11 +129,10 @@ export function TodayHighlight() {
           </div>
           <button
             onClick={() => refetch()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 text-white hover:bg-white/30 text-sm"
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-white/20 text-white hover:bg-white/30"
             title="최신 분석 새로고침"
           >
             <RefreshCw className="w-4 h-4" />
-            새로고침
           </button>
         </div>
 
@@ -154,9 +153,9 @@ export function TodayHighlight() {
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="text-2xl shrink-0">{getStockIcon(stock)}</div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{stock.name}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="text-sm font-medium break-words">{stock.name}</span>
                       {stock.symbol && (
                         <span className="text-xs px-2 py-0.5 rounded-full shrink-0 bg-white/20">
                           {stock.symbol}
@@ -167,9 +166,9 @@ export function TodayHighlight() {
                 </div>
                 <div className="flex items-center gap-1 bg-[#F5F3FF] rounded-full px-3 py-1">
                   {positive ? (
-                    <TrendingUp className="w-4 h-4 text-[#5BBD8C]" />
+                    <TrendingUp className="w-4 h-4 text-[#FF8FAB]" />
                   ) : (
-                    <TrendingDown className="w-4 h-4 text-[#FF8FAB]" />
+                    <TrendingDown className="w-4 h-4 text-[#5BBD8C]" />
                   )}
                   <span className="text-sm font-semibold text-[#8B7FD8]">{change}</span>
                 </div>
