@@ -1,3 +1,4 @@
+import JSON5 from "json5";
 import { getGeminiModel } from "./client";
 import type { Sector, Stock, ActionPlanItem } from "@/types";
 
@@ -46,6 +47,7 @@ const PROMPT_TEMPLATE = `당신은 글로벌 경제 뉴스를 분석하여 투�
 - summary: 필수. 50자 내외로 뉴스 내용을 디테일하게 분석·요약. 핵심 트렌드, 섹터 동향, 시장 이슈를 구체적으로 담을 것.
   * 예: "AI 반도체·전기차 수요 확대, 금리 우려에 방어적 섹터 주목", "엔고·원유 하락에 수출주·항공주 기대감, 반도체 실적 주시"
 - change: "+관심" 또는 "+X.X%"
+- JSON 문법: 문자열 안에 쌍따옴표(") 사용 금지. reason/description/summary는 한 줄로, 이스케이프 필요 문자 없이 작성.
 
 뉴스:
 `;
@@ -66,7 +68,7 @@ export async function analyzeNewsForInsightsWithDebug(
       generationConfig: {
         responseMimeType: "application/json" as const,
         temperature: 0.7,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 4096,
       },
     });
     const response = result.response;
@@ -89,8 +91,21 @@ export async function analyzeNewsForInsightsWithDebug(
   const braceMatch = jsonStr.match(/\{[\s\S]*\}/);
   if (braceMatch) jsonStr = braceMatch[0];
 
+  // LLM이 자주 출력하는 잘못된 JSON 수정
+  jsonStr = jsonStr
+    .replace(/,(\s*[}\]])/g, "$1") // trailing comma 제거
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, ""); // 제어문자 제거 (줄바꿈·탭 제외)
+
+  const parseJson = (str: string): InsightAnalysis => {
+    try {
+      return JSON.parse(str) as InsightAnalysis;
+    } catch {
+      return JSON5.parse(str) as InsightAnalysis;
+    }
+  };
+
   try {
-    const parsed = JSON.parse(jsonStr) as InsightAnalysis;
+    const parsed = parseJson(jsonStr);
 
     const stocks = Array.isArray(parsed.stocks)
       ? parsed.stocks
