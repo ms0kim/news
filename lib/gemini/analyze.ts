@@ -32,7 +32,7 @@ export async function analyzeNewsForInsights(
   "actionPlan": [
     { "id": 1, "text": "액션플랜 항목(한국어)", "priority": 1 }
   ],
-  "summary": "오늘의 핵심 인사이트 짧은 한 줄 (15자 내외)"
+  "summary": "뉴스 기반 오늘의 시장 분석 요약 (30자 내외)"
 }
 
 규칙:
@@ -47,26 +47,36 @@ export async function analyzeNewsForInsights(
 - actionPlan: 4개. 반드시 투자 초보자가 이해하기 쉬운 표현으로 작성.
   * 전문 용어(포트폴리오, 비중, 리스크, ETF, 리서치 등) 대신 쉬운 말 사용
   * 예: "오늘 경제 뉴스 한 줄씩 읽어보기", "내가 산 주식이 얼마인지 확인해보기", "관심 분야(AI·전기차 등) 정보 찾아보기", "모르는 종목은 사지 않고 아는 것만 적당히 투자하기"
-- summary: 15자 내외로 짧게 (예: "AI·전기차 관심", "반도체 수혜 기대")
+- summary: 필수. 30자 내외로 뉴스 내용을 디테일하게 분석·요약. 핵심 트렌드, 섹터 동향, 시장 이슈를 구체적으로 담을 것.
+  * 예: "AI 반도체·전기차 수요 확대, 금리 우려에 방어적 섹터 주목", "엔고·원유 하락에 수출주·항공주 기대감, 반도체 실적 주시"
 - change: "+관심" 또는 "+X.X%"
 
 뉴스:
 ${newsText || "경제·시장 동향"}`;
 
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: {
-      responseMimeType: "application/json" as const,
-      temperature: 0.7,
-      maxOutputTokens: 2048,
-    },
-  });
+  let text: string;
+  try {
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json" as const,
+        temperature: 0.7,
+        maxOutputTokens: 2048,
+      },
+    });
+    const response = result.response;
+    text = response.text();
+  } catch (e) {
+    console.error("[analyzeNewsForInsights] Gemini API error:", e);
+    return getFallbackInsights();
+  }
 
-  const response = result.response;
-  const text = response.text();
-
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  const jsonStr = jsonMatch ? jsonMatch[0] : text;
+  // JSON 추출: 마크다운 코드블록 제거 후 첫 번째 { } 블록
+  let jsonStr = text;
+  const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
+  const braceMatch = jsonStr.match(/\{[\s\S]*\}/);
+  if (braceMatch) jsonStr = braceMatch[0];
 
   try {
     const parsed = JSON.parse(jsonStr) as InsightAnalysis;
@@ -84,6 +94,20 @@ ${newsText || "경제·시장 동향"}`;
           }))
           .filter((s) => s.name && s.symbol)
       : [];
+
+    const rawSummary =
+      (parsed as Record<string, unknown>).summary ??
+      (parsed as Record<string, unknown>).Summary ??
+      (parsed as Record<string, unknown>).요약;
+    let summary =
+      typeof rawSummary === "string" && rawSummary.trim()
+        ? rawSummary.trim()
+        : undefined;
+
+    if (!summary && Array.isArray(parsed.sectors) && parsed.sectors.length > 0) {
+      const first = parsed.sectors[0] as { name?: string; description?: string };
+      summary = first.description ?? `${first.name} 관심`;
+    }
 
     return {
       sectors: Array.isArray(parsed.sectors)
@@ -103,9 +127,11 @@ ${newsText || "경제·시장 동향"}`;
             priority: a.priority ?? i + 1,
           }))
         : [],
-      summary: parsed.summary,
+      summary: summary || "오늘의 AI 추천 종목을 확인해보세요",
     };
-  } catch {
+  } catch (e) {
+    console.error("[analyzeNewsForInsights] JSON parse error:", e);
+    console.error("[analyzeNewsForInsights] Raw text:", text?.slice(0, 500));
     return getFallbackInsights();
   }
 }
@@ -159,6 +185,6 @@ function getFallbackInsights(): InsightAnalysis {
       { id: 3, text: "관심 분야(AI·전기차 등) 정보 찾아보기", completed: false, priority: 3 },
       { id: 4, text: "모르는 종목은 사지 않고, 아는 것만 적당히 투자하기", completed: false, priority: 4 },
     ],
-    summary: "오늘의 추천 종목을 확인해보세요",
+    summary: undefined,
   };
 }

@@ -30,6 +30,15 @@ http://localhost:3000/api/insights
 ```
 - 실패 시 응답의 `details` 필드에 구체적 에러 메시지 포함
 
+### AI 인사이트 디버깅 (단계별)
+```
+http://localhost:3000/api/insights/debug
+```
+- 1단계: API 키 설정 여부
+- 2단계: 뉴스 수집 & 번역 (성공 시 뉴스 개수, 미리보기)
+- 3단계: Gemini AI 분석 (성공 시 sectors, stocks, summary 등)
+- 어느 단계에서 실패하는지, 에러 메시지가 무엇인지 확인 가능
+
 ## 3. 자주 나오는 에러
 
 | 에러 메시지 | 원인 | 조치 |

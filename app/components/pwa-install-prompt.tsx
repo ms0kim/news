@@ -51,7 +51,7 @@ export function PwaInstallPrompt() {
   if (!showPrompt || dismissed || !deferredPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-40 mx-auto max-w-lg rounded-2xl bg-[#8B7FD8] p-4 text-white shadow-lg">
+    <div className="fixed bottom-4 left-4 right-4 z-40 mx-auto max-w-lg rounded-2xl bg-gradient-to-br from-[#8B7FD8] to-[#C4B5FD] p-4 text-white shadow-lg">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
@@ -71,7 +71,7 @@ export function PwaInstallPrompt() {
           </button>
           <button
             onClick={handleInstall}
-            className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#8B7FD8]"
+            className="rounded-full bg-[#F5F3FF] px-4 py-1.5 text-sm font-medium text-[#8B7FD8]"
           >
             설치
           </button>

@@ -148,20 +148,20 @@ export function TodayHighlight() {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{stock.name}</span>
                       {stock.symbol && (
-                        <span className="text-xs px-2 py-0.5 rounded-full shrink-0 border border-white/50">
+                        <span className="text-xs px-2 py-0.5 rounded-full shrink-0 bg-white/20">
                           {stock.symbol}
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 bg-white/30 rounded-full px-3 py-1">
+                <div className="flex items-center gap-1 bg-[#F5F3FF] rounded-full px-3 py-1">
                   {positive ? (
-                    <TrendingUp className="w-4 h-4" />
+                    <TrendingUp className="w-4 h-4 text-[#5BBD8C]" />
                   ) : (
-                    <TrendingDown className="w-4 h-4" />
+                    <TrendingDown className="w-4 h-4 text-[#FF8FAB]" />
                   )}
-                  <span className="text-sm font-medium">{change}</span>
+                  <span className="text-sm font-semibold text-[#8B7FD8]">{change}</span>
                 </div>
               </button>
             );
