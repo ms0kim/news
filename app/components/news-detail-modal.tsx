@@ -1,8 +1,35 @@
 "use client";
 
 import { X, Loader2, ExternalLink } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { NewsItem } from "@/types";
+
+const CACHE_KEY = "news-translation-cache";
+
+type TranslationCache = {
+  translatedTitle: string;
+  translatedContent: string;
+  summary: string;
+};
+
+function getStoredCache(): Record<string, TranslationCache> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveToStorage(cache: Record<string, TranslationCache>) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // localStorage full or disabled
+  }
+}
 
 interface NewsDetailModalProps {
   item: NewsItem | null;
@@ -10,20 +37,28 @@ interface NewsDetailModalProps {
 }
 
 export function NewsDetailModal({ item, onClose }: NewsDetailModalProps) {
-  const [translated, setTranslated] = useState<{
-    translatedTitle: string;
-    translatedContent: string;
-    summary: string;
-  } | null>(null);
+  const [translated, setTranslated] = useState<TranslationCache | null>(null);
   const [loading, setLoading] = useState(false);
+  const cacheRef = useRef<Record<string, TranslationCache>>(getStoredCache());
 
   useEffect(() => {
     if (!item) return;
 
+    // 메모리에 없으면 localStorage에서 로드 (새로고침 후 복원)
+    let cached = cacheRef.current[item.id];
+    if (!cached && typeof window !== "undefined") {
+      cached = getStoredCache()[item.id];
+      if (cached) cacheRef.current[item.id] = cached;
+    }
+    if (cached) {
+      setTranslated(cached);
+      setLoading(false);
+      return;
+    }
+
     setTranslated(null);
     setLoading(true);
 
-    // 모든 뉴스에 대해 번역/요약 API 호출 (요약은 항상 표시)
     fetch("/api/news/translate-summary", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -35,26 +70,33 @@ export function NewsDetailModal({ item, onClose }: NewsDetailModalProps) {
     })
       .then((res) => res.json())
       .then((data) => {
+        let result: TranslationCache;
         if (!data.error) {
-          setTranslated({
+          result = {
             translatedTitle: data.translatedTitle ?? item.title,
             translatedContent: data.translatedContent ?? item.content ?? "",
             summary: data.summary ?? "",
-          });
+          };
         } else {
-          setTranslated({
+          result = {
             translatedTitle: item.translatedTitle ?? item.title,
             translatedContent: item.content ?? "",
             summary: "요약을 생성할 수 없습니다.",
-          });
+          };
         }
+        cacheRef.current[item.id] = result;
+        saveToStorage(cacheRef.current);
+        setTranslated(result);
       })
       .catch(() => {
-        setTranslated({
+        const result: TranslationCache = {
           translatedTitle: item.translatedTitle ?? item.title,
           translatedContent: item.content ?? "",
           summary: "요약을 불러올 수 없습니다.",
-        });
+        };
+        cacheRef.current[item.id] = result;
+        saveToStorage(cacheRef.current);
+        setTranslated(result);
       })
       .finally(() => setLoading(false));
   }, [item]);
