@@ -8,18 +8,14 @@ export interface InsightAnalysis {
   summary?: string;
 }
 
-/**
- * 뉴스 기반 AI 투자 인사이트 분석
- * - 유망 섹터 3개
- * - 추천 종목 3~5개
- * - 투자 액션 플랜 4개 (초보자 눈높이)
- */
-export async function analyzeNewsForInsights(
-  newsText: string
-): Promise<InsightAnalysis> {
-  const model = getGeminiModel("pro");
+export interface InsightAnalysisDebug {
+  analysis: InsightAnalysis;
+  usedFallback: boolean;
+  error?: string;
+  rawGeminiText?: string;
+}
 
-  const prompt = `당신은 글로벌 경제 뉴스를 분석하여 투자 인사이트를 제공하는 전문가입니다.
+const PROMPT_TEMPLATE = `당신은 글로벌 경제 뉴스를 분석하여 투자 인사이트를 제공하는 전문가입니다.
 아래 뉴스들을 분석하여, 다음 JSON 형식으로만 정확히 출력해 주세요. 다른 설명 없이 JSON만 출력하세요.
 
 {
@@ -52,7 +48,16 @@ export async function analyzeNewsForInsights(
 - change: "+관심" 또는 "+X.X%"
 
 뉴스:
-${newsText || "경제·시장 동향"}`;
+`;
+
+/**
+ * 디버그용: fallback 사용 여부, 에러, raw 응답 포함
+ */
+export async function analyzeNewsForInsightsWithDebug(
+  newsText: string
+): Promise<InsightAnalysisDebug> {
+  const model = getGeminiModel("pro");
+  const prompt = PROMPT_TEMPLATE + (newsText || "경제·시장 동향");
 
   let text: string;
   try {
@@ -68,11 +73,16 @@ ${newsText || "경제·시장 동향"}`;
     text = response.text();
   } catch (e) {
     const err = e instanceof Error ? e : new Error(String(e));
-    console.error("[analyzeNewsForInsights] Gemini API error:", err.message, err.cause ?? "");
-    return getFallbackInsights();
+    const msg = err.message + (err.cause ? ` (cause: ${err.cause})` : "");
+    console.error("[analyzeNewsForInsights] Gemini API error:", msg);
+    return {
+      analysis: getFallbackInsights(),
+      usedFallback: true,
+      error: msg,
+      rawGeminiText: undefined,
+    };
   }
 
-  // JSON 추출: 마크다운 코드블록 제거 후 첫 번째 { } 블록
   let jsonStr = text;
   const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
@@ -108,7 +118,7 @@ ${newsText || "경제·시장 동향"}`;
       summary = first.description ?? `${first.name} 관심`;
     }
 
-    return {
+    const analysis: InsightAnalysis = {
       sectors: Array.isArray(parsed.sectors)
         ? parsed.sectors.slice(0, 3).map((s: Sector, i: number) => ({
             name: s.name ?? "미분류",
@@ -128,11 +138,31 @@ ${newsText || "경제·시장 동향"}`;
         : [],
       summary: summary || "오늘의 AI 추천 종목을 확인해보세요",
     };
+    return { analysis, usedFallback: false };
   } catch (e) {
-    console.error("[analyzeNewsForInsights] JSON parse error:", e);
+    const err = e instanceof Error ? e : new Error(String(e));
+    console.error("[analyzeNewsForInsights] JSON parse error:", err.message);
     console.error("[analyzeNewsForInsights] Raw text:", text?.slice(0, 500));
-    return getFallbackInsights();
+    return {
+      analysis: getFallbackInsights(),
+      usedFallback: true,
+      error: `JSON 파싱 실패: ${err.message}`,
+      rawGeminiText: text?.slice(0, 800),
+    };
   }
+}
+
+/**
+ * 뉴스 기반 AI 투자 인사이트 분석
+ * - 유망 섹터 3개
+ * - 추천 종목 3~5개
+ * - 투자 액션 플랜 4개 (초보자 눈높이)
+ */
+export async function analyzeNewsForInsights(
+  newsText: string
+): Promise<InsightAnalysis> {
+  const { analysis } = await analyzeNewsForInsightsWithDebug(newsText);
+  return analysis;
 }
 
 const SYMBOL_MAP: Record<string, string> = {

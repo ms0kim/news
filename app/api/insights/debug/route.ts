@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchEconomicNews } from "@/lib/news";
-import { translateNewsToKorean, analyzeNewsForInsights } from "@/lib/gemini";
+import { translateNewsToKorean, analyzeNewsForInsightsWithDebug } from "@/lib/gemini";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const result: {
     step: string;
-    status: "ok" | "error";
+    status: "ok" | "warning" | "error";
     message?: string;
     data?: unknown;
   }[] = [];
@@ -65,23 +65,33 @@ export async function GET() {
   }
 
   try {
-    const analysis = await analyzeNewsForInsights(newsText);
+    const debugResult = await analyzeNewsForInsightsWithDebug(newsText);
+    const { analysis, usedFallback, error, rawGeminiText } = debugResult;
 
     result.push({
       step: "3. AI 분석 (Gemini)",
-      status: "ok",
+      status: usedFallback ? "warning" : "ok",
       data: {
         sectorsCount: analysis.sectors?.length ?? 0,
         stocksCount: analysis.stocks?.length ?? 0,
         actionPlanCount: analysis.actionPlan?.length ?? 0,
         summary: analysis.summary ?? "(없음)",
         summaryLength: analysis.summary?.length ?? 0,
+        usedFallback,
+        message: usedFallback ? "⚠️ Fallback 사용됨 — 실제 AI 분석 실패. 아래 debug 확인" : "정상",
+        ...(error && { error }),
+        ...(rawGeminiText && { rawGeminiText }),
       },
     });
 
     return NextResponse.json({
       steps: result,
       fullAnalysis: analysis,
+      debug: {
+        usedFallback,
+        error: error ?? null,
+        rawGeminiText: rawGeminiText ?? null,
+      },
     });
   } catch (e) {
     result.push({
