@@ -1,15 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
-const EMOJIS = ["🐰", "🍧", "🩰", "🍦", "🍨", "🐶", "🐹", "🩰", "🧴"];
+import { useEmoji } from "@/lib/emoji-context";
 
 export function Header() {
-  const [emoji, setEmoji] = useState(EMOJIS[0]);
-
-  useEffect(() => {
-    setEmoji(EMOJIS[Math.floor(Math.random() * EMOJIS.length)]);
-  }, []);
+  const emoji = useEmoji();
 
   const currentDate = new Date().toLocaleDateString("ko-KR", {
     weekday: "long",
