@@ -1,4 +1,5 @@
 import { Header } from "./components/header";
+import { HeaderTextProvider } from "@/lib/header-text-context";
 import { InsightsProvider } from "./components/insights-provider";
 import { TodayHighlight } from "./components/today-highlight";
 import { NewsFeed } from "./components/news-feed";
@@ -9,6 +10,7 @@ import { PwaInstallPrompt } from "./components/pwa-install-prompt";
 
 export default function App() {
   return (
+    <HeaderTextProvider>
     <div className="min-h-screen bg-background">
       <Header />
       <PwaInstallPrompt />
@@ -22,5 +24,6 @@ export default function App() {
         </div>
       </InsightsProvider>
     </div>
+    </HeaderTextProvider>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
 import { useEmoji } from "@/lib/emoji-context";
+import { useHeaderText, DEFAULT_BOTTOM_SUB, getDefaultGreeting } from "@/lib/header-text-context";
 
 export function Header() {
   const emoji = useEmoji();
+  const { headerText, bottomSubText } = useHeaderText();
 
   const currentDate = new Date().toLocaleDateString("ko-KR", {
     weekday: "long",
@@ -12,11 +14,11 @@ export function Header() {
   });
 
   const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "좋은 아침이에요";
-    if (hour < 18) return "좋은 오후에요";
-    return "좋은 저녁이에요";
+    if (headerText.trim()) return headerText.trim();
+    return getDefaultGreeting();
   };
+
+  const displayBottomSub = bottomSubText.trim() || DEFAULT_BOTTOM_SUB;
 
   return (
     <div className="bg-background px-6 pt-10 pb-12">
@@ -33,7 +35,7 @@ export function Header() {
           <div className="text-5xl">{emoji}</div>
         </div>
         <p className="text-muted-foreground text-sm mt-2">
-          Let&apos;s grow your wealth together today
+          {displayBottomSub}
         </p>
       </div>
     </div>
