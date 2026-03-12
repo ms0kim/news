@@ -95,10 +95,8 @@ ${newsText || "경제·시장 동향"}`;
           .filter((s) => s.name && s.symbol)
       : [];
 
-    const rawSummary =
-      (parsed as Record<string, unknown>).summary ??
-      (parsed as Record<string, unknown>).Summary ??
-      (parsed as Record<string, unknown>).요약;
+    const raw = parsed as unknown as Record<string, unknown>;
+    const rawSummary = raw.summary ?? raw.Summary ?? raw.요약;
     let summary =
       typeof rawSummary === "string" && rawSummary.trim()
         ? rawSummary.trim()
