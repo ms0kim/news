@@ -7,7 +7,7 @@ import { revalidateTag } from "next/cache";
  */
 export async function POST() {
   try {
-    revalidateTag("insights");
+    revalidateTag("insights", "max");
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("[revalidate]", e);
