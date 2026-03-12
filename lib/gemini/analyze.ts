@@ -1,5 +1,5 @@
 import JSON5 from "json5";
-import { getGeminiModel } from "./client";
+import { getGeminiModel, getProFallbackModel, isQuotaOrModelError } from "./client";
 import type { Sector, Stock, ActionPlanItem } from "@/types";
 
 export interface InsightAnalysis {
@@ -24,7 +24,7 @@ const PROMPT_TEMPLATE = `당신은 글로벌 경제 뉴스를 분석하여 투�
     { "name": "섹터명(한국어)", "change": "+X.X%", "icon": "이모지1개", "description": "한줄설명" }
   ],
   "stocks": [
-    { "name": "종목명", "sector": "섹터", "symbol": "티커", "reason": "추천이유", "change": "+X.X%", "icon": "이모지1개" }
+    { "name": "종목명", "sector": "섹터", "symbol": "티커", "reason": "왜 추천했는지 50자 내외", "change": "+X.X%", "icon": "이모지1개" }
   ],
   "actionPlan": [
     { "id": 1, "text": "액션플랜 항목(한국어)", "priority": 1 }
@@ -40,7 +40,8 @@ const PROMPT_TEMPLATE = `당신은 글로벌 경제 뉴스를 분석하여 투�
   * change: 뉴스 기반 추정 등락률 (예: "+2.1%", "-0.5%", "+관심")
   * icon: 해당 종목에 어울리는 이모지 1개. 종목마다 서로 다른 이모지 사용.
   예: 삼성전자🌟, SK하이닉스🧩, 엔비디아🎯, 테슬라⚡, 애플🍎, 구글🌐, 네이버🟢, 마이크로소프트🪟, AMD🔧, 아마존📦, 현대차🚙, 포스코🏭, 셀트리온💉 등
-  * reason: 부가설명 한 줄 (예: "AI 반도체 수요 확대로 실적 기대")
+  * reason: 왜 이 종목을 추천했는지 50자 내외로 구체적 설명. 뉴스·시장 동향과 연결해 작성.
+    예: "AI 반도체 수요 확대로 실적 기대", "전기차 배터리 수혜·2차전지 투자 확대", "금리 인하 기대에 성장주 관심"
 - actionPlan: 4개. 반드시 투자 초보자가 이해하기 쉬운 표현으로 작성.
   * 전문 용어(포트폴리오, 비중, 리스크, ETF, 리서치 등) 대신 쉬운 말 사용
   * 예: "오늘 경제 뉴스 한 줄씩 읽어보기", "내가 산 주식이 얼마인지 확인해보기", "관심 분야(AI·전기차 등) 정보 찾아보기", "모르는 종목은 사지 않고 아는 것만 적당히 투자하기"
@@ -55,34 +56,55 @@ const PROMPT_TEMPLATE = `당신은 글로벌 경제 뉴스를 분석하여 투�
 /**
  * 디버그용: fallback 사용 여부, 에러, raw 응답 포함
  */
+async function callGenerateContent(model: ReturnType<typeof getGeminiModel>, prompt: string) {
+  const result = await model.generateContent({
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseMimeType: "application/json" as const,
+      temperature: 0.7,
+      maxOutputTokens: 4096,
+    },
+  });
+  return result.response.text();
+}
+
 export async function analyzeNewsForInsightsWithDebug(
   newsText: string
 ): Promise<InsightAnalysisDebug> {
-  const model = getGeminiModel("pro");
   const prompt = PROMPT_TEMPLATE + (newsText || "경제·시장 동향");
-
   let text: string;
+
   try {
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: "application/json" as const,
-        temperature: 0.7,
-        maxOutputTokens: 4096,
-      },
-    });
-    const response = result.response;
-    text = response.text();
+    const model = getGeminiModel("pro");
+    text = await callGenerateContent(model, prompt);
   } catch (e) {
-    const err = e instanceof Error ? e : new Error(String(e));
-    const msg = err.message + (err.cause ? ` (cause: ${err.cause})` : "");
-    console.error("[analyzeNewsForInsights] Gemini API error:", msg);
-    return {
-      analysis: getFallbackInsights(),
-      usedFallback: true,
-      error: msg,
-      rawGeminiText: undefined,
-    };
+    if (isQuotaOrModelError(e)) {
+      try {
+        const fallbackModel = getProFallbackModel();
+        text = await callGenerateContent(fallbackModel, prompt);
+        console.log("[analyzeNewsForInsights] Pro 쿼터 소진, 대체 모델로 성공");
+      } catch (fallbackErr) {
+        const err = fallbackErr instanceof Error ? fallbackErr : new Error(String(fallbackErr));
+        const msg = err.message + (err.cause ? ` (cause: ${err.cause})` : "");
+        console.error("[analyzeNewsForInsights] 대체 모델도 실패:", msg);
+        return {
+          analysis: getFallbackInsights(),
+          usedFallback: true,
+          error: msg,
+          rawGeminiText: undefined,
+        };
+      }
+    } else {
+      const err = e instanceof Error ? e : new Error(String(e));
+      const msg = err.message + (err.cause ? ` (cause: ${err.cause})` : "");
+      console.error("[analyzeNewsForInsights] Gemini API error:", msg);
+      return {
+        analysis: getFallbackInsights(),
+        usedFallback: true,
+        error: msg,
+        rawGeminiText: undefined,
+      };
+    }
   }
 
   let jsonStr = text;

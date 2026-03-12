@@ -25,6 +25,11 @@
 
 ```env
 GEMINI_API_KEY=your-gemini-api-key
+
+# Pro 모델 쿼터 소진 시 사용할 대체 모델 (선택)
+# GEMINI_MODEL_PRO_FALLBACK=gemini-3.1-flash-lite-preview
+# GEMINI_MODEL_PRO=gemini-3-flash-preview
+# GEMINI_MODEL_FLASH=gemini-3.1-flash-lite-preview
 ```
 
 ## 발급 방법

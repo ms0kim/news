@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Loader2, ExternalLink } from "lucide-react";
+import { X, Loader2, ExternalLink, Coffee } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import type { NewsItem } from "@/types";
 
@@ -117,12 +117,12 @@ export function NewsDetailModal({ item, onClose }: NewsDetailModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-[#E5DFF8]">
-          <span className="text-xs text-[#9B91C1]">{item.source}</span>
+          <span className="text-sm p-1 text-[#9B91C1]">{item.source}</span>
           <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-[#F5F3FF] transition-colors"
           >
-            <X className="w-5 h-5 text-[#3D3557]" />
+            <X className="w-5 h-5 text-[#8B7FD8]" />
           </button>
         </div>
 
@@ -139,8 +139,8 @@ export function NewsDetailModal({ item, onClose }: NewsDetailModalProps) {
           </h3>
 
           <div className="p-4 rounded-2xl bg-[#F5F3FF] border border-[#E5DFF8]">
-            <div className="text-xs font-medium text-[#8B7FD8] mb-2">
-              📌 요약
+            <div className="flex items-start gap-1.5 text-xs font-medium text-[#8B7FD8] mb-2">
+              <Coffee className="w-3.5 h-3.5 mt-0.4" /> 요약
             </div>
             <p className="text-sm text-[#3D3557]">
               {loading ? "요약 생성 중..." : summary || "요약을 불러오는 중..."}

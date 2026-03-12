@@ -1,8 +1,35 @@
 "use client";
 
-import { X, ExternalLink, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { X, ExternalLink, Loader2, PiggyBank, Clock, HandCoins, Wallet } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import type { Stock } from "@/types";
+
+type InvestmentAdvice = {
+  buyPrice: string;
+  sellPrice: string;
+  buyTiming: string;
+  sellTiming: string;
+  strategy: string;
+};
+
+const ADVICE_CACHE_KEY = "news-investment-advice-cache";
+
+function getStoredAdviceCache(): Record<string, InvestmentAdvice> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(ADVICE_CACHE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveAdviceToStorage(cache: Record<string, InvestmentAdvice>) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(ADVICE_CACHE_KEY, JSON.stringify(cache));
+  } catch {}
+}
 
 interface StockDetailModalProps {
   stock: Stock | null;
@@ -74,6 +101,9 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
     currency: string;
   } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [advice, setAdvice] = useState<InvestmentAdvice | null>(null);
+  const [adviceLoading, setAdviceLoading] = useState(false);
+  const adviceCacheRef = useRef<Record<string, InvestmentAdvice>>({});
 
   useEffect(() => {
     if (!stock?.symbol) return;
@@ -94,6 +124,60 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [stock]);
+
+  // 투자 조언: quote 로드 후 API 호출 또는 캐시에서
+  useEffect(() => {
+    if (!stock?.symbol) return;
+
+    const cacheKey = stock.symbol;
+    let cached = adviceCacheRef.current[cacheKey];
+    if (!cached && typeof window !== "undefined") {
+      cached = getStoredAdviceCache()[cacheKey];
+      if (cached) adviceCacheRef.current[cacheKey] = cached;
+    }
+    if (cached) {
+      setAdvice(cached);
+      setAdviceLoading(false);
+      return;
+    }
+
+    if (!quote?.price) {
+      setAdvice(null);
+      return;
+    }
+
+    setAdviceLoading(true);
+    setAdvice(null);
+
+    fetch("/api/stock/investment-advice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: stock.name,
+        symbol: stock.symbol,
+        currentPrice: quote.price,
+        currency: quote.currency,
+        reason: stock.reason,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) {
+          const result: InvestmentAdvice = {
+            buyPrice: data.buyPrice ?? "-",
+            sellPrice: data.sellPrice ?? "-",
+            buyTiming: data.buyTiming ?? "-",
+            sellTiming: data.sellTiming ?? "-",
+            strategy: data.strategy ?? "-",
+          };
+          adviceCacheRef.current[cacheKey] = result;
+          saveAdviceToStorage({ ...getStoredAdviceCache(), [cacheKey]: result });
+          setAdvice(result);
+        }
+      })
+      .catch(() => setAdvice(null))
+      .finally(() => setAdviceLoading(false));
+  }, [stock, quote?.price, quote?.currency]);
 
   if (!stock) return null;
 
@@ -116,15 +200,15 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
         className="bg-white rounded-3xl shadow-xl max-w-lg w-full overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 border-b border-[#E5DFF8]">
+        <div className="flex items-center justify-between p-5 border-b border-[#E5DFF8] bg-gradient-to-r from-[#FBF9FF] to-white">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">{getStockIcon(stock)}</span>
+            <span className="text-3xl drop-shadow-sm">{getStockIcon(stock)}</span>
             <div>
               <h3 className="text-lg font-semibold text-[#3D3557]">
                 {stock.name}
               </h3>
               {stock.symbol && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-[#F5F3FF] text-[#8B7FD8]">
+                <span className="text-xs px-2.5 py-1 rounded-full bg-[#F5F3FF] text-[#8B7FD8] font-medium">
                   {stock.symbol}
                 </span>
               )}
@@ -132,28 +216,28 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-[#F5F3FF] transition-colors"
+            className="p-2 rounded-full hover:bg-[#F5F3FF] transition-colors text-[#8B7FD8]"
           >
-            <X className="w-5 h-5 text-[#3D3557]" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
           {loading ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 py-1">
               <Loader2 className="w-5 h-5 animate-spin text-[#8B7FD8]" />
               <span className="text-sm text-[#9B91C1]">등락률 조회 중...</span>
             </div>
           ) : quote ? (
-            <div className="flex items-baseline gap-2">
+            <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-2xl font-bold text-[#3D3557]">
                 {formatPrice(quote.price, quote.currency)}
               </span>
               <span
-                className={`text-lg font-medium ${
+                className={`text-base font-semibold px-2 py-0.5 rounded-lg ${
                   quote.changeStr.startsWith("+")
-                    ? "text-red-500"
-                    : "text-blue-500"
+                    ? "text-red-600 bg-red-50"
+                    : "text-blue-600 bg-blue-50"
                 }`}
               >
                 {quote.changeStr}
@@ -162,19 +246,73 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
           ) : null}
 
           {stock.reason && (
-            <div className="p-4 rounded-2xl bg-[#F5F3FF] border border-[#E5DFF8]">
-              <div className="text-xs font-medium text-[#8B7FD8] mb-2">
-                📌 부가설명
-              </div>
-              <p className="text-sm text-[#3D3557]">{stock.reason}</p>
-            </div>
+            <p className="text-sm text-[#6B6378] leading-relaxed">{stock.reason}</p>
           )}
+
+          {/* AI 투자 조언 */}
+          <div className="p-4 rounded-2xl bg-[#F5F3FF] border border-[#E5DFF8]">
+            <div className="text-xs font-semibold text-[#8B7FD8] mb-3 flex items-center gap-1.5">
+              AI 투자 조언
+            </div>
+            {adviceLoading ? (
+              <div className="flex items-center gap-2 py-6">
+                <Loader2 className="w-4 h-4 animate-spin text-[#8B7FD8]" />
+                <span className="text-sm text-[#9B91C1]">투자 전략 분석 중...</span>
+              </div>
+            ) : advice ? (
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 gap-3.5">
+                <div className="flex items-start gap-2.5 p-3 rounded-md bg-white/60">
+                  <PiggyBank className="w-4 h-4 text-[#8B7FD8] shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <div className="text-xs text-[#9B91C1] mb-0.5">권장 매수가</div>
+                    <div className="font-medium text-[#3D3557] break-words">{advice.buyPrice ?? "-"}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-3 rounded-md bg-white/60">
+                  <HandCoins className="w-4 h-4 text-[#8B7FD8] shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <div className="text-xs text-[#9B91C1] mb-0.5">권장 매도가</div>
+                    <div className="font-medium text-[#3D3557] break-words">{advice.sellPrice ?? "-"}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3.5">
+                <div className="flex items-start gap-2.5 p-3 rounded-md bg-white/60">
+                  <Wallet className="w-4 h-4 text-[#8B7FD8] shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <div className="text-xs text-[#9B91C1] mb-0.5">매수 타이밍</div>
+                    <div className="text-[#3D3557] leading-snug">{advice.buyTiming ?? "-"}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-3 rounded-md bg-white/60">
+                  <Clock className="w-4 h-4 text-[#8B7FD8] shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <div className="text-xs text-[#9B91C1] mb-0.5">매도 타이밍</div>
+                    <div className="text-[#3D3557] leading-snug">{advice.sellTiming ?? "-"}</div>
+                  </div>
+                </div>
+              </div>
+              {advice.strategy && (
+                <div className="pt-3 border-t border-[#E5DFF8]">
+                  <div className="text-xs font-medium text-[#8B7FD8] mb-1.5">투자 전략</div>
+                  <p className="text-[#3D3557] text-[13px] leading-relaxed">{advice.strategy}</p>
+                </div>
+              )}
+              <p className="text-[11px] text-[#9B91C1]/90">
+                ※ AI 참고용이며, 투자 결정은 본인 판단으로 하세요.
+              </p>
+            </div>
+            ) : quote ? (
+              <p className="text-sm text-[#9B91C1]">투자 조언을 불러올 수 없습니다.</p>
+            ) : null}
+          </div>
 
           <a
             href={detailUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-[#8B7FD8] text-white hover:bg-[#7A6FC7] transition-colors"
+            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-[#8B7FD8] text-white font-medium hover:bg-[#7A6FC7] transition-colors shadow-sm hover:shadow"
           >
             <ExternalLink className="w-4 h-4" />
             {isKorean ? "네이버 금융에서 보기" : "Google 금융에서 보기 (한국어)"}
