@@ -95,12 +95,24 @@ function getStockIcon(stock: { name?: string; sector?: string; icon?: string }):
   return pool[idx];
 }
 
+function getKrwFromUsdText(text: string, rate: number): string | null {
+  if (!text.includes("$")) return null;
+  const numbers =
+    text.match(/[\d,]+(?:\.\d+)?/g)?.map((m) => parseFloat(m.replace(/,/g, ""))) ?? [];
+  if (numbers.length === 0) return null;
+  const krwNums = numbers.map((n) => Math.round(n * rate));
+  return krwNums.length > 1
+    ? `약 ${krwNums[0].toLocaleString()}~${krwNums[1].toLocaleString()}원`
+    : `약 ${krwNums[0].toLocaleString()}원`;
+}
+
 export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
   const [quote, setQuote] = useState<{
     changeStr: string;
     price: number;
     currency: string;
   } | null>(null);
+  const [usdKrwRate, setUsdKrwRate] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [advice, setAdvice] = useState<InvestmentAdvice | null>(null);
   const [adviceLoading, setAdviceLoading] = useState(false);
@@ -125,6 +137,19 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [stock]);
+
+  useEffect(() => {
+    if (quote?.currency === "USD") {
+      fetch("/api/exchange-rate?from=USD&to=KRW")
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data.error && data.rate) setUsdKrwRate(data.rate);
+        })
+        .catch(() => {});
+    } else {
+      setUsdKrwRate(null);
+    }
+  }, [quote?.currency]);
 
   // 투자 조언: quote 로드 후 API 호출 또는 캐시에서
   useEffect(() => {
@@ -187,18 +212,13 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
     ? getKoreanStockUrl(stock.symbol!)
     : getUsStockUrl(stock.symbol!);
 
-  const formatPrice = (p: number, currency: string) => {
-    if (currency === "KRW") return `${p.toLocaleString()}원`;
-    return `$${p.toLocaleString()}`;
-  };
-
   const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 min-h-screen"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl shadow-xl max-w-lg w-full overflow-hidden"
+        className="bg-white rounded-3xl shadow-xl max-w-lg w-full overflow-hidden max-h-[75vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-5 border-b border-[#E5DFF8] bg-gradient-to-r from-[#FBF9FF] to-white">
@@ -231,14 +251,27 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
             </div>
           ) : quote ? (
             <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="text-2xl font-bold text-[#3D3557]">
-                {formatPrice(quote.price, quote.currency)}
-              </span>
+              {quote.currency === "KRW" ? (
+                <span className="text-2xl font-bold text-[#3D3557]">
+                  {quote.price.toLocaleString()}원
+                </span>
+              ) : (
+                <>
+                  <span className="text-2xl font-bold text-[#3D3557]">
+                    ${quote.price.toLocaleString()}
+                  </span>
+                  {usdKrwRate && (
+                    <span className="text-sm text-[#9B91C1] font-normal">
+                      (약 {Math.round(quote.price * usdKrwRate).toLocaleString()}원)
+                    </span>
+                  )}
+                </>
+              )}
               <span
                 className={`text-base font-semibold px-2 py-0.5 rounded-lg ${
                   quote.changeStr.startsWith("+")
-                    ? "text-red-600 bg-red-50"
-                    : "text-blue-600 bg-blue-50"
+                    ? "text-[#FF8FAB] bg-[#FFE5EC]/70"
+                    : "text-[#5BBD8C] bg-[#E8F5E8]/70"
                 }`}
               >
                 {quote.changeStr}
@@ -263,35 +296,69 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
             ) : advice ? (
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-3.5">
-                <div className="flex items-start gap-2.5 p-3 rounded-md bg-white/60">
-                  <PiggyBank className="w-4 h-4 text-[#8B7FD8] shrink-0 mt-0.5" />
-                  <div className="min-w-0">
-                    <div className="text-xs text-[#9B91C1] mb-0.5">권장 매수가</div>
-                    <div className="font-medium text-[#3D3557] break-words">{advice.buyPrice ?? "-"}</div>
+                <div className="flex flex-col gap-2.5 p-3 rounded-md bg-white/60">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <PiggyBank className="w-4 h-4 text-[#8B7FD8] shrink-0" />
+                    <span className="text-xs text-[#9B91C1]">권장 매수가</span>
+                  </div>
+                  <div className="text-[13px] text-[#3D3557] break-words leading-snug">
+                    {quote?.currency === "USD" && usdKrwRate ? (
+                      (() => {
+                        const t = advice.buyPrice ?? "-";
+                        const krw = getKrwFromUsdText(t, usdKrwRate);
+                        return krw ? (
+                          <>
+                            {t}{" "}
+                            <span className="text-[11px] text-[#9B91C1]">({krw})</span>
+                          </>
+                        ) : (
+                          t
+                        );
+                      })()
+                    ) : (
+                      advice.buyPrice ?? "-"
+                    )}
                   </div>
                 </div>
-                <div className="flex items-start gap-2.5 p-3 rounded-md bg-white/60">
-                  <HandCoins className="w-4 h-4 text-[#8B7FD8] shrink-0 mt-0.5" />
-                  <div className="min-w-0">
-                    <div className="text-xs text-[#9B91C1] mb-0.5">권장 매도가</div>
-                    <div className="font-medium text-[#3D3557] break-words">{advice.sellPrice ?? "-"}</div>
+                <div className="flex flex-col gap-2.5 p-3 rounded-md bg-white/60">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <HandCoins className="w-4 h-4 text-[#8B7FD8] shrink-0" />
+                    <span className="text-xs text-[#9B91C1]">권장 매도가</span>
+                  </div>
+                  <div className="text-[13px] text-[#3D3557] break-words leading-snug">
+                    {quote?.currency === "USD" && usdKrwRate ? (
+                      (() => {
+                        const t = advice.sellPrice ?? "-";
+                        const krw = getKrwFromUsdText(t, usdKrwRate);
+                        return krw ? (
+                          <>
+                            {t}{" "}
+                            <span className="text-[11px] text-[#9B91C1]">({krw})</span>
+                          </>
+                        ) : (
+                          t
+                        );
+                      })()
+                    ) : (
+                      advice.sellPrice ?? "-"
+                    )}
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3.5">
-                <div className="flex items-start gap-2.5 p-3 rounded-md bg-white/60">
-                  <Wallet className="w-4 h-4 text-[#8B7FD8] shrink-0 mt-0.5" />
-                  <div className="min-w-0">
-                    <div className="text-xs text-[#9B91C1] mb-0.5">매수 타이밍</div>
-                    <div className="text-[#3D3557] leading-snug">{advice.buyTiming ?? "-"}</div>
+                <div className="flex flex-col gap-2.5 p-3 rounded-md bg-white/60">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <Wallet className="w-4 h-4 text-[#8B7FD8] shrink-0" />
+                    <span className="text-xs text-[#9B91C1]">매수 타이밍</span>
                   </div>
+                  <div className="text-[13px] text-[#3D3557] break-words leading-snug">{advice.buyTiming ?? "-"}</div>
                 </div>
-                <div className="flex items-start gap-2.5 p-3 rounded-md bg-white/60">
-                  <Clock className="w-4 h-4 text-[#8B7FD8] shrink-0 mt-0.5" />
-                  <div className="min-w-0">
-                    <div className="text-xs text-[#9B91C1] mb-0.5">매도 타이밍</div>
-                    <div className="text-[#3D3557] leading-snug">{advice.sellTiming ?? "-"}</div>
+                <div className="flex flex-col gap-2.5 p-3 rounded-md bg-white/60">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-[#8B7FD8] shrink-0" />
+                    <span className="text-xs text-[#9B91C1]">매도 타이밍</span>
                   </div>
+                  <div className="text-[13px] text-[#3D3557] break-words leading-snug">{advice.sellTiming ?? "-"}</div>
                 </div>
               </div>
               {advice.strategy && (

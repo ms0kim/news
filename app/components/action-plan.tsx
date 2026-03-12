@@ -45,7 +45,7 @@ export function ActionPlan() {
       <div className="bg-white rounded-3xl p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-5">
           <Lightbulb className="w-5 h-5 text-[#FFD3A5]" />
-          <h3>Today's Action Plan</h3>
+          <h3>오늘 확인해야 할 리스트</h3>
         </div>
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-[#8B7FD8] mb-3" />
@@ -68,7 +68,7 @@ export function ActionPlan() {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <Lightbulb className="w-5 h-5 text-[#FFD3A5]" />
-            <h3>Today's Action Plan</h3>
+            <h3>오늘 확인해야 할 리스트</h3>
           </div>
           <div className="bg-[#FFF9E5] text-[#3D3557] px-3 py-1 rounded-full text-sm">
             {fallbackPlan.filter((a) => completed[a.id]).length}/{fallbackPlan.length}
@@ -111,7 +111,7 @@ export function ActionPlan() {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <Lightbulb className="w-5 h-5 text-[#FFD3A5]" />
-          <h3>Today's Action Plan</h3>
+          <h3>오늘 확인해야 할 리스트</h3>
         </div>
         <div className="bg-[#FFF9E5] text-[#3D3557] px-3 py-1 rounded-full text-sm">
           {completedCount}/{actionPlan.length}

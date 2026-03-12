@@ -58,7 +58,7 @@ export function GrowthTracker() {
     <div className="bg-white rounded-3xl p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-5">
         <Calendar className="w-5 h-5 text-[#8B7FD8]" />
-        <h3 className="font-medium">Growth Tracker</h3>
+        <h3 className="font-medium">매일 출석하기</h3>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

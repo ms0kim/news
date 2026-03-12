@@ -30,7 +30,7 @@ export function SettingsPanel() {
     <div className="bg-white rounded-3xl p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-5">
         <Settings className="w-5 h-5 text-[#8B7FD8]" />
-        <h3>Settings</h3>
+        <h3>설정</h3>
       </div>
 
       <div className="space-y-4">
@@ -85,7 +85,7 @@ export function SettingsPanel() {
           </button>
         </div>
 
-        <div className="bg-gradient-to-r from-[#FFF9E5] to-[#FFE5EC] rounded-2xl p-4 text-center">
+        <div className="bg-gradient-to-br from-[#FFF9E5] to-[#FFE5EC] rounded-2xl p-4 text-center">
           <div className="text-3xl mb-2">🌟</div>
           <div className="text-sm text-[#3D3557] mb-1">
             Keep learning every day!
