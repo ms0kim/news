@@ -23,8 +23,12 @@ export function Header() {
       <div className="max-w-lg mx-auto">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <p className="text-muted-foreground text-sm">{currentDate}</p>
-            <h1 className="text-foreground text-2xl font-medium mt-1">{getGreeting()}</h1>
+            <p className="text-muted-foreground text-sm" suppressHydrationWarning>
+              {currentDate}
+            </p>
+            <h1 className="text-foreground text-2xl font-medium mt-1" suppressHydrationWarning>
+              {getGreeting()}
+            </h1>
           </div>
           <div className="text-5xl">{emoji}</div>
         </div>
