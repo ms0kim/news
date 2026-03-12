@@ -88,10 +88,10 @@ export function SettingsPanel() {
         <div className="bg-gradient-to-br from-[#FFF9E5] to-[#FFE5EC] rounded-2xl p-4 text-center">
           <div className="text-3xl mb-2">🌟</div>
           <div className="text-sm text-[#3D3557] mb-1">
-            Keep learning every day!
+            오늘도 부자되려고 노력했다
           </div>
           <div className="text-xs text-[#9B91C1]">
-            Small steps lead to big gains.
+            미래의 나, 보고있니?
           </div>
         </div>
       </div>

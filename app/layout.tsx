@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "../style/index.css";
 import { EmojiProvider } from "@/lib/emoji-context";
 
-const EMOJIS = ["🐰", "🍧", "🩰", "🍦", "🍨", "🐶", "🐹", "🩰", "🧴"];
+const EMOJIS = ["🐰", "🍧", "🩰", "🍦", "🍨", "🐶", "🐹"];
 
 function getDefaultEmoji() {
   return EMOJIS[new Date().getDate() % EMOJIS.length];

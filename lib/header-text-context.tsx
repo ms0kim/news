@@ -13,13 +13,13 @@ const STORAGE_KEYS = {
   bottomSub: "customHeaderBottomSub",
 } as const;
 
-export const DEFAULT_BOTTOM_SUB = "Let's grow your wealth together today";
+export const DEFAULT_BOTTOM_SUB = "매일 부자 되는 습관 만들기!";
 
 export function getDefaultGreeting() {
   const hour = new Date().getHours();
-  if (hour < 12) return "좋은 아침이에요";
-  if (hour < 18) return "좋은 오후에요";
-  return "좋은 저녁이에요";
+  if (hour < 12) return "굿모닝이올시다";
+  if (hour < 18) return "맛있는 점심 먹자";
+  return "집가서 저녁 먹자";
 }
 
 const HeaderTextContext = createContext<{
