@@ -42,6 +42,13 @@ function setCached(data: InsightsData) {
   } catch {}
 }
 
+function clearCached() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(CACHE_KEY);
+  } catch {}
+}
+
 export function useInsights() {
   const [data, setData] = useState<InsightsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,8 +76,14 @@ export function useInsights() {
 
     setLoading(true);
     setError(null);
+    clearCached();
     try {
-      const res = await fetch("/api/insights");
+      if (forceRefresh) {
+        await fetch("/api/insights/revalidate", { method: "POST" });
+      }
+      const res = await fetch("/api/insights", {
+        cache: forceRefresh ? "no-store" : "default",
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         const msg = err.details || err.error || "Failed to fetch";

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { unstable_cache } from "next/cache";
+import { unstable_cache, revalidateTag } from "next/cache";
 import { fetchEconomicNews } from "@/lib/news";
 import {
   translateNewsToKorean,
@@ -41,7 +41,7 @@ export async function GET() {
     const getCached = unstable_cache(
       fetchInsightsData,
       ["insights", dateKey],
-      { revalidate: CACHE_SECONDS }
+      { revalidate: CACHE_SECONDS, tags: ["insights"] }
     );
 
     const data = await getCached();

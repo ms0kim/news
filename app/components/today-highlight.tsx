@@ -122,9 +122,19 @@ export function TodayHighlight() {
   return (
     <>
       <div className="bg-gradient-to-br from-[#8B7FD8] to-[#C4B5FD] rounded-3xl p-6 text-white shadow-lg">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkle className="w-5 h-5" />
-          <h2 className="text-white">Today's AI Picks</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Sparkle className="w-5 h-5" />
+            <h2 className="text-white">Today's AI Picks</h2>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 text-white hover:bg-white/30 text-sm"
+            title="최신 분석 새로고침"
+          >
+            <RefreshCw className="w-4 h-4" />
+            새로고침
+          </button>
         </div>
 
         {summary && (
