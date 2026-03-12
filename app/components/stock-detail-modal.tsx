@@ -119,6 +119,16 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
   const adviceCacheRef = useRef<Record<string, InvestmentAdvice>>({});
 
   useEffect(() => {
+    if (stock) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [stock]);
+
+  useEffect(() => {
     if (!stock?.symbol) return;
 
     setLoading(true);

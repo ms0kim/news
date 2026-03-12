@@ -42,6 +42,16 @@ export function NewsDetailModal({ item, onClose }: NewsDetailModalProps) {
   const cacheRef = useRef<Record<string, TranslationCache>>(getStoredCache());
 
   useEffect(() => {
+    if (item) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [item]);
+
+  useEffect(() => {
     if (!item) return;
 
     // 메모리에 없으면 localStorage에서 로드 (새로고침 후 복원)
