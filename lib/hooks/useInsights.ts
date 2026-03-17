@@ -19,6 +19,12 @@ export interface InsightsData {
 const CACHE_KEY = "insights_cache";
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30분
 
+// 모달 캐시 키들 (데이터 갱신 시 함께 클리어)
+const MODAL_CACHE_KEYS = [
+  "news-translation-cache",
+  "news-investment-advice-cache",
+];
+
 function getCached(): { data: InsightsData; timestamp: number } | null {
   if (typeof window === "undefined") return null;
   try {
@@ -46,6 +52,8 @@ function clearCached() {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(CACHE_KEY);
+    // 관련 모달 캐시들도 함께 클리어 (데이터 동기화)
+    MODAL_CACHE_KEYS.forEach((key) => localStorage.removeItem(key));
   } catch {}
 }
 

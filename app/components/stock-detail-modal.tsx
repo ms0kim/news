@@ -15,6 +15,23 @@ type InvestmentAdvice = {
 
 const ADVICE_CACHE_KEY = "news-investment-advice-cache";
 
+// 데이터 변경 감지를 위한 간단한 해시 생성
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(36);
+}
+
+// 주식의 캐시 키 생성 (symbol + 이유/섹터 해시)
+function getAdviceCacheKey(stock: Stock): string {
+  const contentHash = simpleHash(stock.name + (stock.reason || "") + (stock.sector || ""));
+  return `${stock.symbol}_${contentHash}`;
+}
+
 function getStoredAdviceCache(): Record<string, InvestmentAdvice> {
   if (typeof window === "undefined") return {};
   try {
@@ -165,7 +182,7 @@ export function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
   useEffect(() => {
     if (!stock?.symbol) return;
 
-    const cacheKey = stock.symbol;
+    const cacheKey = getAdviceCacheKey(stock);
     let cached = adviceCacheRef.current[cacheKey];
     if (!cached && typeof window !== "undefined") {
       cached = getStoredAdviceCache()[cacheKey];

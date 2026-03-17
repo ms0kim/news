@@ -12,6 +12,23 @@ type TranslationCache = {
   summary: string;
 };
 
+// 데이터 변경 감지를 위한 간단한 해시 생성
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(36);
+}
+
+// 뉴스 아이템의 캐시 키 생성 (id + 내용 해시)
+function getCacheKey(item: NewsItem): string {
+  const contentHash = simpleHash(item.title + (item.content || ""));
+  return `${item.id}_${contentHash}`;
+}
+
 function getStoredCache(): Record<string, TranslationCache> {
   if (typeof window === "undefined") return {};
   try {
@@ -54,11 +71,13 @@ export function NewsDetailModal({ item, onClose }: NewsDetailModalProps) {
   useEffect(() => {
     if (!item) return;
 
+    const cacheKey = getCacheKey(item);
+
     // 메모리에 없으면 localStorage에서 로드 (새로고침 후 복원)
-    let cached = cacheRef.current[item.id];
+    let cached = cacheRef.current[cacheKey];
     if (!cached && typeof window !== "undefined") {
-      cached = getStoredCache()[item.id];
-      if (cached) cacheRef.current[item.id] = cached;
+      cached = getStoredCache()[cacheKey];
+      if (cached) cacheRef.current[cacheKey] = cached;
     }
     if (cached) {
       setTranslated(cached);
@@ -94,7 +113,7 @@ export function NewsDetailModal({ item, onClose }: NewsDetailModalProps) {
             summary: "요약을 생성할 수 없습니다.",
           };
         }
-        cacheRef.current[item.id] = result;
+        cacheRef.current[cacheKey] = result;
         saveToStorage(cacheRef.current);
         setTranslated(result);
       })
@@ -104,7 +123,7 @@ export function NewsDetailModal({ item, onClose }: NewsDetailModalProps) {
           translatedContent: item.content ?? "",
           summary: "요약을 불러올 수 없습니다.",
         };
-        cacheRef.current[item.id] = result;
+        cacheRef.current[cacheKey] = result;
         saveToStorage(cacheRef.current);
         setTranslated(result);
       })
