@@ -193,7 +193,7 @@ export function NewsDetailModal({ item, onClose }: NewsDetailModalProps) {
               href={item.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-[#8B7FD8] hover:underline"
+              className="inline-flex items-center gap-2 text-sm text-[#8B7FD8] hover:underline w-fit"
             >
               <ExternalLink className="w-4 h-4" />
               원문 보기

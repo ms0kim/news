@@ -8,7 +8,7 @@ import type { NewsItem } from "@/types";
 
 export function NewsFeed() {
   const { data, loading, error, refetch } = useInsightsContext();
-  const [translateMode, setTranslateMode] = useState(false);
+  const [translateMode, setTranslateMode] = useState(true);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
 
   const news = data?.news ?? [];
@@ -62,12 +62,12 @@ export function NewsFeed() {
           onClick={() => setTranslateMode(!translateMode)}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors ${
             translateMode
-              ? "bg-[#8B7FD8] text-white"
-              : "bg-[#F5F3FF] text-[#8B7FD8]"
+              ? "bg-[#F5F3FF] text-[#8B7FD8]"
+              : "bg-[#8B7FD8] text-white"
           }`}
         >
           <Languages className="w-4 h-4" />
-          <span className="text-sm">KR</span>
+          <span className="text-sm">번역끄기</span>
         </button>
       </div>
 
