@@ -32,8 +32,13 @@ export async function GET(request: Request) {
 
     const price = result.meta?.regularMarketPrice ?? 0;
     const closes = result.indicators?.quote?.[0]?.close ?? [];
-    const prevClose = closes.length >= 2 ? closes[closes.length - 2] : result.meta?.chartPreviousClose ?? price;
-    const change = prevClose ? ((price - prevClose) / prevClose) * 100 : 0;
+    // null이 아닌 유효한 종가만 필터링
+    const validCloses = closes.filter((c: number | null): c is number => c !== null && !isNaN(c));
+    // 유효한 종가 중 마지막 2개를 비교 (오늘 종가, 어제 종가)
+    const prevClose = validCloses.length >= 2
+      ? validCloses[validCloses.length - 2]
+      : result.meta?.chartPreviousClose ?? result.meta?.previousClose ?? 0;
+    const change = prevClose && price ? ((price - prevClose) / prevClose) * 100 : 0;
     const changeStr = change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
 
     return NextResponse.json({
